@@ -1,0 +1,8 @@
+atlassian-python-api
+markdownify
+jira
+jira2markdown
+networkx
+python-magic
+spacy
+openai
