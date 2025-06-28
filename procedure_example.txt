@@ -1,0 +1,8 @@
+Open a web browser and navigate to https://www.google.com
+In the search bar, type "Playwright Python" and press Enter.
+Click on the link that contains "playwright.dev".
+Use a Python script to extract the title of the current page and print it.
+Open a new terminal.
+Run the command: ls -l
+Run the command: echo "Hello from automated agent!"
+Confirm that the previous steps were successful.
