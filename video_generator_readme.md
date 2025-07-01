@@ -1,17 +1,24 @@
-# Video and Description Generator for Playwright Scripts (Automated)
+# Video and Description Generator for Playwright Scripts
 
-This tool automates the creation of a video recording and a timed JSON description directly from a commented Playwright script.
+This tool automates the creation of a video recording and a timed JSON description by intelligently mapping your high-level steps to the actions in a Playwright script.
 
-## How it works
+## How it Works
 
-The `video_generator.py` script now has a new, smarter workflow:
+This workflow provides a powerful way to generate accurate video descriptions:
 
-1.  **Analyzes Your Script**: It reads your Playwright script and looks for comments formatted like `# Step 1: ...`, `# Step 2: ...`, etc. It uses these comments to automatically generate the list of steps. This simulates an AI understanding the code.
-2.  **Runs Playwright**: It executes your Playwright script, which must be configured to produce a video and a `trace.zip` file.
-3.  **Processes Trace**: It unzips the trace file to get precise timestamps for each action.
-4.  **Generates JSON**: It correlates the auto-generated steps with the action timestamps and outputs a `description.json` file.
+1.  **You Provide Inputs**:
+    *   A **Playwright script** (`.py`) where you have added comments (`# Step 1`, `# Step 2`, etc.) to mark the beginning of a logical step.
+    *   A **steps file** (`.txt`) containing your own human-readable descriptions for each of those steps.
 
-This means you no longer need to create a separate `steps.txt` file.
+2.  **The Script Analyzes and Maps**:
+    *   The `video_generator.py` script first reads your Playwright script to understand how many actions belong to each step block (by counting the `await page...` calls after each `# Step` comment).
+    *   It then runs the Playwright script, which generates a video and a detailed trace file with timestamps for every action.
+
+3.  **Correlation and Output**:
+    *   The script correlates your high-level descriptions with the groups of timed actions from the trace file.
+    *   It then generates a `description.json` file where each of your steps has a precise `start_time` and `end_time` corresponding to the actions in the video.
+
+This approach allows a single one of your descriptions (e.g., "Log into the website") to correctly map to multiple actions in the code (e.g., `fill username`, `fill password`, `click login`).
 
 ## Prerequisites
 
@@ -24,67 +31,55 @@ This means you no longer need to create a separate `steps.txt` file.
 
 ## Usage
 
-### 1. Prepare your Playwright script
+### 1. Prepare your Playwright Script
 
-You need to modify your Playwright script to enable video recording, tracing, and add step comments.
+Add comments (`# Step 1`, `# Step 2`, etc.) to your script to mark where each logical step begins. Also, ensure your script is set up for video and trace recording.
 
-See `example_playwright_script.py` for a full example. The key is to add comments for each logical step.
+See `example_playwright_script.py` for a full example.
 
 ```python
-import asyncio
-from playwright.async_api import async_playwright
+# ... setup ...
 
-async def main():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
-        context = await browser.new_context(record_video_dir="videos")
-        await context.tracing.start(screenshots=True, snapshots=True, sources=True)
-        page = await context.new_page()
+# Step 1: Navigate to the website and log in.
+await page.goto("https://example.com")
+await page.get_by_label("Username").fill("user")
+await page.get_by_label("Password").fill("pass")
+await page.get_by_role("button", name="Log in").click()
 
-        # Step 1: Navigate to the Playwright website.
-        await page.goto("https://playwright.dev/")
+# Step 2: Perform a search.
+await page.get_by_label("Search").fill("My query")
+await page.get_by_label("Search").press("Enter")
 
-        # Step 2: Click on the search bar.
-        await page.get_by_label("Search").click()
-
-        # ... more steps ...
-
-        await context.tracing.stop(path="trace.zip")
-        await browser.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# ... etc ...
 ```
 
-**Key changes:**
+### 2. Create Your Steps Description File
 
-*   **Step Comments**: Add comments like `# Step 1: Your description` before each action.
-*   `record_video_dir="videos"`: Enables video recording.
-*   `context.tracing.start(...)`: Starts tracing.
-*   `context.tracing.stop(path="trace.zip")`: Stops tracing.
+Create a text file (e.g., `example_steps.txt`) where each line is a high-level description that corresponds to a `# Step` block in your script.
 
-### 2. Run the generator script
+**`example_steps.txt`:**
+```
+Navigate to the website and log in.
+Perform a search for "My query".
+```
 
-Execute the `video_generator.py` script, passing only your Playwright script as an argument:
+### 3. Run the Generator Script
+
+Execute the `video_generator.py` script, providing both your Playwright script and your steps file as arguments:
 
 ```bash
-python video_generator.py your_playwright_script.py
+python video_generator.py your_playwright_script.py your_steps.txt
 ```
 
 For example:
 
 ```bash
-python video_generator.py example_playwright_script.py
+python video_generator.py example_playwright_script.py example_steps.txt
 ```
 
-### 3. Check the output
+### 4. Check the Output
 
 The script will create:
 
 *   A `videos` directory with the recorded `.webm` video file.
-*   A `description.json` file in the root directory with the timed, auto-generated step descriptions.
-
-## Important Notes
-
-*   The script now relies on comments in your Playwright file to generate steps. Make sure they are formatted correctly (e.g., `# Step 1: ...`).
-*   The script will still delete and recreate a `trace_data` directory and `trace.zip` file during execution.
+*   A `description.json` file with your high-level steps and their accurate start and end times.

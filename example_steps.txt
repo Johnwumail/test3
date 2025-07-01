@@ -1,5 +1,2 @@
-Navigate to the Playwright website.
-Click on the search bar.
-Type "test" into the search bar.
-Press Enter to search.
-Wait for the search results to load.
+Navigate to the Playwright website and perform a search.
+Wait for the search results to load and finish the session.
