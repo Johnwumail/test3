@@ -23,6 +23,17 @@ spec:
         envFrom:
         - configMapRef:
             name: knowledge-base-config
+        env:
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: knowledge-base-secrets
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: knowledge-base-secrets
+              key: MINIO_SECRET_KEY
 ---
 apiVersion: v1
 kind: Service

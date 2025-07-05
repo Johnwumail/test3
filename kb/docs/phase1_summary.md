@@ -39,7 +39,49 @@
     *   `k8s/phase1/configs/02-configmap.yaml`: 用于管理非敏感配置的模板。
     *   `k8s/phase1/README.md`: 详细的部署和配置说明。
 
-## 4. 为后续阶段奠定的基础
+## 4. 如何使用
+
+### 4.1 部署
+
+部署分为两个主要步骤：
+
+1.  **构建和推送镜像**:
+    *   为 `services/` 目录下的每一个服务（`embedding_service`, `ingestion_job`, `reranker_service`, `retrieval_api`）构建 Docker 镜像。
+    *   将构建好的镜像推送到您自己的私有或公共 Docker 镜像仓库。
+
+2.  **配置和部署 Kubernetes 资源**:
+    *   详细的配置和部署指南位于 `k8s/phase1/README.md`。
+    *   **核心步骤**:
+        *   修改 `k8s/phase1/configs/` 目录下的 YAML 文件，将占位符（如 `your-docker-registry/your-repo`）替换为您的实际镜像地址。
+        *   根据需要调整 `StorageClass`、`namespace` 等配置。
+        *   为 GPU 节点配置正确的 `nodeSelector` 和 `tolerations`。
+        *   在 `k8s/phase1/configs/01-secrets.yaml` 中配置好 MinIO 和数据源的凭证。
+        *   执行 `k8s/phase1/deploy.sh` 脚本来部署所有资源。
+
+### 4.2 数据摄取
+
+*   部署完成后，`Ingestion CronJob` 会按照预设的计划（默认为每天）自动运行，从（占位的）Jira/Confluence 拉取数据，进行处理，并存入 MinIO 和 Qdrant。
+*   您也可以手动触发该 `CronJob` 来立即执行数据摄取。
+
+### 4.3 查询知识库
+
+*   一旦数据摄取完成，知识库就可以通过 **Retrieval API** 进行查询。
+*   该 API 通过 Kubernetes `Ingress` 暴露，您需要获取其外部访问地址。
+*   使用任何 HTTP 客户端（如 `curl` 或 Postman）向该地址的 `/query` 端点发送 `POST` 请求。
+
+**查询示例:**
+
+```bash
+curl -X POST http://<your-retrieval-api-ingress-address>/query \
+-H "Content-Type: application/json" \
+-d '{
+  "text": "如何为我们的服务配置水平自动缩放？"
+}'
+```
+
+*   API 将返回一个经过重排序的、最相关的文档列表。
+
+## 5. 为后续阶段奠定的基础
 
 第一阶段的完成为后续工作铺平了道路：
 

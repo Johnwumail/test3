@@ -3,7 +3,7 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Install dependencies
-RUN pip install fastapi uvicorn python-multipart requests qdrant-client
+RUN pip install fastapi uvicorn python-multipart requests qdrant-client minio
 
 # Copy the application code
 COPY ./retrieval_api.py /app/
