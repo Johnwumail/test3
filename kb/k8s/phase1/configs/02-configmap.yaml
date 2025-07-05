@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: knowledge-base-config
+  namespace: knowledge-base
+data:
+  JIRA_URL: "https://your-jira.atlassian.net"
+  CONFLUENCE_URL: "https://your-confluence.atlassian.net"
+  # Comma-separated list of Jira project keys
+  JIRA_PROJECT_KEYS: "PROJ1,PROJ2"
+  # Comma-separated list of Confluence space keys
+  CONFLUENCE_SPACE_KEYS: "SPACE1,SPACE2"
+  MINIO_ENDPOINT: "minio-service:9000"
+  QDRANT_ENDPOINT: "qdrant-service:6333"
+  EMBEDDING_MODEL_NAME: "BAAI/bge-large-zh-v1.5"
+  RERANKER_MODEL_NAME: "BAAI/bge-reranker-base"

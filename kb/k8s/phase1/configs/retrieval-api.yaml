@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retrieval-api
+  namespace: knowledge-base
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retrieval-api
+  template:
+    metadata:
+      labels:
+        app: retrieval-api
+    spec:
+      imagePullSecrets:
+      - name: regcred # IMPORTANT: Replace with your image pull secret
+      containers:
+      - name: retrieval-api
+        image: your-docker-registry/your-repo/retrieval-api:latest # IMPORTANT: Replace with your image path
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: knowledge-base-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: retrieval-api-service
+  namespace: knowledge-base
+spec:
+  selector:
+    app: retrieval-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: retrieval-api-ingress
+  namespace: knowledge-base
+  annotations:
+    # Add any ingress controller specific annotations here
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /query
+        pathType: Prefix
+        backend:
+          service:
+            name: retrieval-api-service
+            port:
+              number: 8000

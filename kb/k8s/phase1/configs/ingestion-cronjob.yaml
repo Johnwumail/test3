@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ingestion-cronjob
+  namespace: knowledge-base
+spec:
+  schedule: "0 0 * * *" # Runs every day at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+          - name: regcred # IMPORTANT: Replace with your image pull secret
+          containers:
+          - name: ingestion-job
+            image: your-docker-registry/your-repo/ingestion-job:latest # IMPORTANT: Replace with your image path
+            envFrom:
+            - configMapRef:
+                name: knowledge-base-config
+            - secretRef:
+                name: knowledge-base-secrets
+          restartPolicy: OnFailure
